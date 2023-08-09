@@ -85,16 +85,18 @@ class ContactForm(forms.Form):
 
     def prepare_initial_value(**kwargs):
         request = kwargs.pop("request") 
-        return {
-                'contact_lastname' : request.user.last_name,
-                'contact_firstname' : request.user.first_name,
-                'contact_email' : request.user.email,
-                'contact_telephone' : request.user.phone_number,
-                'technical_lastname' : request.user.last_name,
-                'technical_firstname' : request.user.first_name,
-                'technical_email' : request.user.email,
-                'technical_telephone' : request.user.phone_number
-            }
+        if request.user in request:
+            return {
+                    'contact_lastname' : request.user.last_name,
+                    'contact_firstname' : request.user.first_name,
+                    'contact_email' : request.user.email,
+                    'contact_telephone' : request.user.phone_number,
+                    'technical_lastname' : request.user.last_name,
+                    'technical_firstname' : request.user.first_name,
+                    'technical_email' : request.user.email,
+                    'technical_telephone' : request.user.phone_number
+                }
+        return {}
 
 # prepare an array of sector and services        
 def construct_services_array(root_categories):

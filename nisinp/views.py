@@ -86,7 +86,7 @@ class FormWizardView(SessionWizardView):
             # create the form with the correct question/answers
             questionFormset = formset_factory(QuestionForm)
             formset = questionFormset()
-            formset = CategoryFormSet.add_questions(position=position-2)
+            formset = CategoryFormSet.add_questions(position-2)
             form.forms = formset.forms
         else:
             form = super(FormWizardView, self).get_form(self.steps.current)
@@ -97,14 +97,11 @@ class FormWizardView(SessionWizardView):
         #     print(form.non_form_errors())
         #     print(form.is_bound)
 
-        return form
-    
-    def get_context_data(self, form, **kwargs):
-        context = super().get_context_data(form=form, **kwargs)
-        return context
+        return super().get_context_data(form=form, **kwargs)
     
     def done(self, form_list, **kwargs):
         data = [form.cleaned_data for form in form_list]
+        print (data)
         # Incident.objects.create(
         # )
         # return render(self.request, 'incident_list', {
