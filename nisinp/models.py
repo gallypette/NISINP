@@ -7,6 +7,8 @@ from parler.models import TranslatableModel, TranslatedFields
 
 from .managers import CustomUserManager
 
+from datetime import date
+
 # sector
 class Sector(TranslatableModel):
     translations = TranslatedFields(name=models.CharField(max_length=100))
@@ -180,7 +182,7 @@ class RegulationType(TranslatableModel):
 class Incident(models.Model):
     # XXXX-SSS-SSS-NNNN-YYYY
     ïncident_id = models.CharField(max_length=22, verbose_name=_("Incident identifier"))
-    preliminary_notification_date = models.DateField()
+    preliminary_notification_date = models.DateField(default=date.today)
     company_name = models.CharField(max_length=100, verbose_name=_("Company name"))
     company = models.ForeignKey(
         Company, 
@@ -214,7 +216,7 @@ class Incident(models.Model):
 
     affected_services = models.ManyToManyField(Services)
     regulations = models.ManyToManyField(RegulationType)
-    final_notification_date = models.DateField()
+    final_notification_date = models.DateField(null=True, blank=True)
 
 #answers
 class Answer(models.Model):

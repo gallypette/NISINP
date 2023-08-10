@@ -60,8 +60,6 @@ def incident_list(request):
 
 # initialize data
 def get_form_list(request, form_list=None):
-    print ('form list')
-    print (form_list)
     if form_list is None: 
         form_list = PreliminaryNotificationForm.get_number_of_question()
     return FormWizardView.as_view(
@@ -109,7 +107,7 @@ class FormWizardView(SessionWizardView):
 
     
     def done(self, form_list, **kwargs):
-        data = []
+        data = [form.cleaned_data for form in form_list]
         position = 0
         # for form in form_list:
         #     print(position)
@@ -119,10 +117,24 @@ class FormWizardView(SessionWizardView):
         #     else:
         #         data.append(form.cleaned_data)
         #     position = position +1
-        print([form.cleaned_data for form in form_list])
+        print(data)
 
-        # Incident.objects.create(
-        # )
+        Incident.objects.create(
+            contact_lastname = data[0]['contact_lastname'],
+            contact_firstname = data[0]['contact_firstname'],
+            contact_title = data[0]['contact_title'],
+            contact_email = data[0]['contact_email'],
+            contact_telephone = data[0]['contact_telephone'],
+            #technical contact
+            technical_lastname = data[0]['technical_lastname'],
+            technical_firstname = data[0]['technical_firstname'],
+            technical_title = data[0]['technical_title'],
+            technical_email = data[0]['technical_email'],
+            technical_telephone = data[0]['technical_telephone'],
+            
+            incident_reference = data[0]['incident_reference'],
+            complaint_reference = data[0]['complaint_reference'],
+        )
         # return render(self.request, 'incident_list', {
         #     'form_data': [form.cleaned_data for form in form_list],
         # })
