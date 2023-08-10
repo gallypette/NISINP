@@ -119,7 +119,7 @@ class FormWizardView(SessionWizardView):
         #     position = position +1
         print(data)
 
-        Incident.objects.create(
+        incident = Incident.objects.create(
             contact_lastname = data[0]['contact_lastname'],
             contact_firstname = data[0]['contact_firstname'],
             contact_title = data[0]['contact_title'],
@@ -135,6 +135,9 @@ class FormWizardView(SessionWizardView):
             incident_reference = data[0]['incident_reference'],
             complaint_reference = data[0]['complaint_reference'],
         )
+        for regulation in data[1]['regulation']:
+            incident.regulations.add(regulation)
+        
         # return render(self.request, 'incident_list', {
         #     'form_data': [form.cleaned_data for form in form_list],
         # })
