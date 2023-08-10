@@ -1,7 +1,6 @@
 from django_otp.forms import OTPAuthenticationForm
 from django import forms
 from .models import Question, QuestionCategory, RegulationType, Services, Sector
-from django.forms import formset_factory, BaseFormSet
 
 class AuthenticationForm(OTPAuthenticationForm):
     otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
@@ -15,21 +14,14 @@ class DummyForm(forms.Form):
 class QuestionForm(forms.Form):
 
     label = forms.CharField(widget=forms.HiddenInput(), required=False)
-    def __init__(self, *args, **kwargs):
-        questions = Question.objects.all().order_by('position')
-        question = questions[1]
-        if 'question' in kwargs:
-            question = kwargs.pop("question") 
-        super(QuestionForm, self).__init__(*args, **kwargs)
-
-        self.fields['label'].label = question.label
-        
+    # for dynamicly add question to forms
+    def create_question(self, question):
         if question.question_type == 'MULTI':
             choices = []
             for choice in question.predifined_answers.all():
                 choices.append([choice.id, choice])
-            self.fields["label"] = forms.MultipleChoiceField(
-                required= False,
+            self.fields[str(question.id)] = forms.MultipleChoiceField(
+                required= True,
                 choices=choices,
                 widget=forms.CheckboxSelectMultiple(
                     attrs={"class": "multiple-selection"}
@@ -37,24 +29,32 @@ class QuestionForm(forms.Form):
                 label=question.label,
             )
         elif question.question_type == 'DATE':
-            self.fields['label'] = forms.DateField(
+            self.fields[str(question.id)] = forms.DateField(
                 widget=forms.SelectDateWidget()
             )
-            self.fields['label'].label = question.label
+            self.fields[str(question.id)].label = question.label
+        elif question.question_type == 'FREETEXT':
+            self.fields[str(question.id)] = forms.CharField(required=False)
+            self.fields[str(question.id)].label = question.label
 
-# group the question in one formset
-class CategoryFormSet():
-    def add_questions(position):
-        questionFormset = formset_factory(QuestionForm)
-        categories = QuestionCategory.objects.all().order_by(
+    def __init__(self, *args, **kwargs):
+        questions = Question.objects.all().order_by('position')
+        question = questions[1]
+        position = -1
+        if 'question' in kwargs:
+            question = kwargs.pop("question") 
+        if 'position' in kwargs:
+            position = kwargs.pop("position")
+        super(QuestionForm, self).__init__(*args, **kwargs)
+        
+        if position > -1:
+            question = questions[position] 
+            categories = QuestionCategory.objects.all().order_by(
             'position').filter(question__is_preliminary = True).distinct()
-        category = categories[position]
-        questions = Question.objects.all().filter(category=category, is_preliminary= True)
-        question_form = questionFormset()
-        question_form.forms = []
-        for question in questions:
-            question_form.forms.append(QuestionForm(question=question))
-        return question_form
+            category = categories[position]
+            questions = Question.objects.all().filter(category=category, is_preliminary= True)
+            for question in questions:
+                self.create_question(question)
             
 
 # the first question for preliminary notification
@@ -142,13 +142,12 @@ class PreliminaryNotificationForm(forms.Form):
 
     # prepare the forms for the formset
     def get_number_of_question():
-        questionFormset = formset_factory(QuestionForm)
         categories = QuestionCategory.objects.all().filter(question__is_preliminary = True).distinct()
         category_tree = [ContactForm]
         category_tree.append(ImpactedServicesForm)
 
         for category in categories:
-            category_tree.append(questionFormset)           
+            category_tree.append(QuestionForm)           
         
         return category_tree
 

@@ -2,7 +2,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django_otp.decorators import otp_required
-from .forms import PreliminaryNotificationForm, CategoryFormSet, ContactForm, QuestionForm
+from .forms import PreliminaryNotificationForm, ContactForm, QuestionForm, ImpactedServicesForm
 from .models import Incident, Answer
 from django.forms import formset_factory
 
@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect
 
 from nisinp.settings import SITE_NAME
 
-from formtools.wizard.views import SessionWizardView
+from formtools.wizard.views import SessionWizardView, CookieWizardView
 
 @login_required
 def index(request):
@@ -60,15 +60,18 @@ def incident_list(request):
 
 # initialize data
 def get_form_list(request, form_list=None):
+    print ('form list')
+    print (form_list)
+    if form_list is None: 
+        form_list = PreliminaryNotificationForm.get_number_of_question()
     return FormWizardView.as_view(
-        form_list=PreliminaryNotificationForm.get_number_of_question(),
+        form_list,
         initial_dict={'0': ContactForm.prepare_initial_value(request=request)}
     )(request)
 
 
 # Wizard to manage the form
 class FormWizardView(SessionWizardView):
-
     template_name = "notification/declaration.html"
 
     def __init__(self, **kwargs):
@@ -76,32 +79,48 @@ class FormWizardView(SessionWizardView):
         self.initial_dict = kwargs.pop('initial_dict')
         return super(FormWizardView, self).__init__(**kwargs)
         
-    def get_context_data(self, form, **kwargs):
-        form = super().get_form(self.steps.current)
-        step = self.steps.current
-
+    def get_form(self, step=None, data=None, files=None):
+        if step is None:
+            step = self.steps.current
         position = int(step)
         # when we have passed the fixed forms
         if position > 1:
+            print(position)
             # create the form with the correct question/answers
-            questionFormset = formset_factory(QuestionForm)
-            formset = questionFormset()
-            formset = CategoryFormSet.add_questions(position-2)
-            form.forms = formset.forms
-        else:
-            form = super(FormWizardView, self).get_form(self.steps.current)
-    
-        # if not form.is_valid():
-        #     print('non valide')
-        #     print(form.errors)
-        #     print(form.non_form_errors())
-        #     print(form.is_bound)
+            form = QuestionForm(data, position=position-2)
 
-        return super().get_context_data(form=form, **kwargs)
+            return form
+            # if not form.is_valid():
+            #     print('form.errors')
+            #     print(form.errors)
+            #     print('form.is_bound')
+            #     print(form.is_bound)
+            
+
+        else:
+            form = super(FormWizardView, self).get_form(step, data, files)
+        return form
+    
+    # def get_context_data(self, form, **kwargs):
+    #     context = super().get_context_data(form=form, **kwargs)
+    #     return context
+    
+    
+
     
     def done(self, form_list, **kwargs):
-        data = [form.cleaned_data for form in form_list]
-        print (data)
+        data = []
+        position = 0
+        # for form in form_list:
+        #     print(position)
+        #     if position >1:
+        #         for f in form.forms:
+        #             data.append(f.cleaned_data)
+        #     else:
+        #         data.append(form.cleaned_data)
+        #     position = position +1
+        print([form.cleaned_data for form in form_list])
+
         # Incident.objects.create(
         # )
         # return render(self.request, 'incident_list', {
