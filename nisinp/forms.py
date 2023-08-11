@@ -10,7 +10,7 @@ class AuthenticationForm(OTPAuthenticationForm):
 class DummyForm(forms.Form):
     pass
 
-# create a form for each question
+# create a form for each category and add fields which represent questions
 class QuestionForm(forms.Form):
 
     label = forms.CharField(widget=forms.HiddenInput(), required=False)
@@ -61,24 +61,85 @@ class QuestionForm(forms.Form):
 class ContactForm(forms.Form):   
     company_name = forms.CharField(label="Company name", max_length=100)
 
-    contact_lastname = forms.CharField(max_length=100)
-    contact_firstname = forms.CharField(max_length=100)
-    contact_title = forms.CharField(max_length=100)
-    contact_email = forms.CharField(max_length=100)
-    contact_telephone = forms.CharField(max_length=100)
+    contact_lastname = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+           attrs={"class": "contact_lastname"}
+        ),
+    )
+    contact_firstname = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+           attrs={"class": "contact_firstname"}
+        ),
+    )
+    contact_title = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+           attrs={"class": "contact_title"}
+        ),
+    )
+    contact_email = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+           attrs={"class": "contact_email"}
+        ),
+    )
+    contact_telephone = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+           attrs={"class": "contact_telephone"}
+        ),
+    )
 
     is_technical_the_same = forms.BooleanField(
         required = False,
         widget=forms.CheckboxInput(
-           attrs={"class": "required checkbox "}
+           attrs={"class": "required checkbox ",
+                  'onclick': "if (checked==true) {"+
+                    "document.getElementsByClassName('technical_lastname')[0].value="+
+                        "document.getElementsByClassName('contact_lastname')[0].value; "+
+                    "document.getElementsByClassName('technical_firstname')[0].value="+
+                        "document.getElementsByClassName('contact_firstname')[0].value; "+
+                    "document.getElementsByClassName('technical_title')[0].value="+
+                        "document.getElementsByClassName('contact_title')[0].value; "+
+                    "document.getElementsByClassName('technical_email')[0].value="+
+                        "document.getElementsByClassName('contact_email')[0].value; "+
+                    "document.getElementsByClassName('technical_telephone')[0].value="+
+                        "document.getElementsByClassName('contact_telephone')[0].value;}"}
         ),
         initial = False
     )
-    technical_lastname = forms.CharField(max_length=100)
-    technical_firstname = forms.CharField(max_length=100)
-    technical_title = forms.CharField(max_length=100)
-    technical_email = forms.CharField(max_length=100)
-    technical_telephone = forms.CharField(max_length=100)
+    technical_lastname = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+           attrs={"class": "technical_lastname"}
+        ),
+    )
+    technical_firstname = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+           attrs={"class": "technical_firstname"}
+        ),
+    )
+    technical_title = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+           attrs={"class": "technical_title"}
+        ),
+    )
+    technical_email = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+           attrs={"class": "technical_email"}
+        ),
+    )
+    technical_telephone = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(
+           attrs={"class": "technical_telephone"}
+        ),
+    )
 
     incident_reference = forms.CharField(max_length=255)
     complaint_reference = forms.CharField(max_length=255)
@@ -91,10 +152,6 @@ class ContactForm(forms.Form):
                     'contact_firstname' : request.user.first_name,
                     'contact_email' : request.user.email,
                     'contact_telephone' : request.user.phone_number,
-                    'technical_lastname' : request.user.last_name,
-                    'technical_firstname' : request.user.first_name,
-                    'technical_email' : request.user.email,
-                    'technical_telephone' : request.user.phone_number
                 }
         return {}
 
