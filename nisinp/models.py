@@ -228,10 +228,11 @@ class Answer(models.Model):
         Question,
         on_delete=models.CASCADE
     )
-    answer = models.TextField()
-    PredifinedAnswer = models.ForeignKey(
-        PredifinedAnswer,
-        on_delete = models.SET_NULL,
+    answer = models.TextField(
         null = True,
+        blank = True
+    )
+    PredifinedAnswer = models.ManyToManyField(
+        PredifinedAnswer,
         blank = True
     )

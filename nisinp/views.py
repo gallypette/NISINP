@@ -3,8 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django_otp.decorators import otp_required
 from .forms import PreliminaryNotificationForm, ContactForm, QuestionForm, ImpactedServicesForm
-from .models import Incident, Answer
-from django.forms import formset_factory
+from .models import Incident, Answer, Question, PredifinedAnswer
+
+import datetime
+
 
 from django.http import HttpResponseRedirect
 
@@ -137,6 +139,41 @@ class FormWizardView(SessionWizardView):
         )
         for regulation in data[1]['regulation']:
             incident.regulations.add(regulation)
+        
+        for d in range(2, len(data)):
+            print('data d')
+            print(data[d])
+            for key, value in data[d].items():
+                question_id = None
+                try:
+                    question_id = int(key)
+                except:
+                    pass
+                if question_id is not None:
+                    print('key')
+                    print(key)
+                    print('value')
+                    print(value)
+                    question = Question.objects.get(pk=key)
+                    if question.question_type == 'FREETEXT':
+                        answer = value
+                        predifinedAnswer = None
+                    elif question.question_type =='DATE':
+                        answer = value.strftime('%m/%d/%Y')
+                        predifinedAnswer
+                    else : 
+                        predifinedAnswers = []
+                        for val in value:
+                            predifinedAnswer = PredifinedAnswer.objects.get(pk=val)
+                            predifinedAnswers.append(predifinedAnswer)
+                        answer = None
+                    answer_object = Answer.objects.create(
+                        incident = incident,
+                        question = question,
+                        answer = answer,
+                    )
+                    answer_object.PredifinedAnswer.set(predifinedAnswers)
+
         
         # return render(self.request, 'incident_list', {
         #     'form_data': [form.cleaned_data for form in form_list],
