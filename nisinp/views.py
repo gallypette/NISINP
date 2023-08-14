@@ -38,25 +38,6 @@ def index(request):
 def notifications(request):
     return render(request, "notification/index.html", context={"site_name": SITE_NAME})
 
-# def declaration(request):
-#     form = PreliminaryNotificationForm()
-#     # if this is a POST request we need to process the form data
-#     if request.method == "POST":
-#         # create a form instance and populate it with data from the request:
-#         form = PreliminaryNotificationForm(request.POST)
-#         # check whether it's valid:
-#         if form.is_valid():
-#             # process the data in form.cleaned_data as required
-#             # ...
-#             # redirect to a new URL:
-#             return HttpResponseRedirect("incident_list")
-
-#     # if a GET (or any other method) we'll create a blank form
-#     else:
-#         form = PreliminaryNotificationForm()
-
-#     return render(request, "notification/declaration.html", context={"site_name": SITE_NAME, "form": form})
-
 def incident_list(request):
     return render(request, "notification/incident_list.html", context={"site_name": SITE_NAME})
 
