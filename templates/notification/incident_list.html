@@ -2,6 +2,32 @@
 {% block content %}
 <div class="text-justify">
     <h1>Incident list</h1>
+    {% if incidents %}
+    <table>
+        <tr>
+            <th>preliminary_notification_date</th>
+            <th>contact_lastname</th>
+            <th>regulation</th>
+            <th>service</th>
+            <th>final declaration</th>
+        </tr>
+        {% for incident in incidents %}
+        <tr>
+            <td>{{incident.preliminary_notification_date}}</td>
+            <td>{{incident.contact_lastname}}</td>
+            <td>{% for regulation in incident.regulations.all %}{{regulation.label}} {% endfor %}</td>
+            <td>{% for service in incident.affected_services.all %}{{service.label}} {% endfor %}</td>
+            {% if incident.final_notification_date is None %}
+                <td>Make the final declaration</td>
+            {% else %}
+                <td>Update the final declaration</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>There are no incident</p>
+    {% endif %}
 
 </div>
 {% endblock %}

@@ -1,8 +1,10 @@
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django_otp.decorators import otp_required
-from .forms import PreliminaryNotificationForm, ContactForm, QuestionForm, ImpactedServicesForm
+
+from .forms import PreliminaryNotificationForm, ContactForm, QuestionForm
 from .models import Incident, Answer, Question, PredifinedAnswer
 
 import datetime
@@ -12,7 +14,7 @@ from django.http import HttpResponseRedirect
 
 from nisinp.settings import SITE_NAME
 
-from formtools.wizard.views import SessionWizardView, CookieWizardView
+from formtools.wizard.views import SessionWizardView
 
 @login_required
 def index(request):
@@ -38,10 +40,7 @@ def index(request):
 def notifications(request):
     return render(request, "notification/index.html", context={"site_name": SITE_NAME})
 
-def incident_list(request):
-    return render(request, "notification/incident_list.html", context={"site_name": SITE_NAME})
-
-# initialize data
+# initialize data for the preliminary notification
 def get_form_list(request, form_list=None):
     if form_list is None: 
         form_list = PreliminaryNotificationForm.get_number_of_question()
@@ -50,6 +49,18 @@ def get_form_list(request, form_list=None):
         initial_dict={'0': ContactForm.prepare_initial_value(request=request)}
     )(request)
 
+
+#get the list of incident
+@login_required
+def get_incident_list(request):
+    user = request.user
+    incidents = Incident.objects.all().order_by(
+        'preliminary_notification_date').filter(contact_user=user)
+    return render(
+        request, 
+        "notification/incident_list.html", 
+        context={"site_name": SITE_NAME, "incidents": incidents}
+    )
 
 # Wizard to manage the form
 class FormWizardView(SessionWizardView):
@@ -81,12 +92,6 @@ class FormWizardView(SessionWizardView):
         else:
             form = super(FormWizardView, self).get_form(step, data, files)
         return form
-    
-    # def get_context_data(self, form, **kwargs):
-    #     context = super().get_context_data(form=form, **kwargs)
-    #     return context
-    
-    
 
     
     def done(self, form_list, **kwargs):
@@ -101,7 +106,9 @@ class FormWizardView(SessionWizardView):
         #         data.append(form.cleaned_data)
         #     position = position +1
         print(data)
-
+        user = None
+        if self.request.user.is_authenticated:
+            user = self.request.user
         incident = Incident.objects.create(
             contact_lastname = data[0]['contact_lastname'],
             contact_firstname = data[0]['contact_firstname'],
@@ -117,6 +124,7 @@ class FormWizardView(SessionWizardView):
             
             incident_reference = data[0]['incident_reference'],
             complaint_reference = data[0]['complaint_reference'],
+            contact_user = user
         )
         for regulation in data[1]['regulation']:
             incident.regulations.add(regulation)

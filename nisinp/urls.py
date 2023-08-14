@@ -18,8 +18,7 @@ from django.urls import include, path
 from django.views.i18n import set_language
 from two_factor.urls import urlpatterns as tf_urls
 from two_factor.views import LoginView
-from .views import FormWizardView, get_form_list
-from .forms import ContactForm, PreliminaryNotificationForm
+from .views import get_form_list, get_incident_list
 
 from nisinp.admin import admin_site
 
@@ -55,7 +54,7 @@ urlpatterns = [
     # incident declaration
     path("notifications/declaration", get_form_list, name="declaration"),
     # incident list
-    path("notifications/incident_list", views.incident_list, name="incident_list"),
+    path("notifications/incident_list", get_incident_list, name="incident_list"),
 ]
 
 if DEBUG:
