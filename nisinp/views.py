@@ -128,6 +128,8 @@ class FormWizardView(SessionWizardView):
         )
         for regulation in data[1]['regulation']:
             incident.regulations.add(regulation)
+        for service in data[1]['affected_services']:
+            incident.affected_services.add(service)
         
         for d in range(2, len(data)):
             print('data d')
