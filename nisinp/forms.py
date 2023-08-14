@@ -159,7 +159,8 @@ class ContactForm(forms.Form):
 def construct_services_array(root_categories):
     choices_serv = []
     for root_category in root_categories:
-        choices_serv.append([root_category.id, root_category])
+        #keep integer for the services to avoid to register a false services
+        choices_serv.append(['service'+ str(root_category.id), root_category])
         for service in Services.objects.all().filter(sector=root_category):
             choices_serv.append([service.id,service])
         if(len(Sector.objects.all().filter(parent=root_category))>0):
