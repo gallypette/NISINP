@@ -193,22 +193,24 @@ class ImpactedServicesForm(forms.Form):
         ),
     )
 
-    
-    
-# class for the preliminary notification
-class PreliminaryNotificationForm(forms.Form):
+class ImpactForFinalNotificationForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        if 'incident' in kwargs:
+            incident = kwargs.pop("incident") 
+            affected_services = incident.affected_services
+            
+        super(ImpactForFinalNotificationForm, self).__init__(*args, **kwargs)
 
-    # prepare the forms for the formset
-    def get_number_of_question():
-        categories = QuestionCategory.objects.all().filter(question__is_preliminary = True).distinct()
+def get_number_of_question(is_preliminary = True):
+    categories = QuestionCategory.objects.all().filter(question__is_preliminary = is_preliminary).distinct()
+    
+    if is_preliminary is True:
         category_tree = [ContactForm]
         category_tree.append(ImpactedServicesForm)
+    else:
+        category_tree = [ImpactForFinalNotificationForm]
 
-        for category in categories:
-            category_tree.append(QuestionForm)           
-        
-        return category_tree
-
-
-
+    for category in categories:
+        category_tree.append(QuestionForm)           
     
+    return category_tree

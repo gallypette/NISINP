@@ -18,7 +18,7 @@
             <td>{% for regulation in incident.regulations.all %}{{regulation.label}} {% endfor %}</td>
             <td>{% for service in incident.affected_services.all %}{{service.name}} {% endfor %}</td>
             {% if incident.final_notification_date is None %}
-                <td>Make the final declaration</td>
+                <td><a href="{% url 'final-notification' incident.id %}">Make the final declaration</a></td>
             {% else %}
                 <td>Update the final declaration</td>
             {% endif %}
