@@ -129,39 +129,8 @@ class FormWizardView(SessionWizardView):
             except:
                 pass
         
-        for d in range(2, len(data)):
-            print('data d')
-            print(data[d])
-            for key, value in data[d].items():
-                question_id = None
-                try:
-                    question_id = int(key)
-                except:
-                    pass
-                if question_id is not None:
-                    print('key')
-                    print(key)
-                    print('value')
-                    print(value)
-                    question = Question.objects.get(pk=key)
-                    if question.question_type == 'FREETEXT':
-                        answer = value
-                        predifinedAnswer = None
-                    elif question.question_type =='DATE':
-                        answer = value.strftime('%m/%d/%Y')
-                        predifinedAnswer
-                    else : 
-                        predifinedAnswers = []
-                        for val in value:
-                            predifinedAnswer = PredifinedAnswer.objects.get(pk=val)
-                            predifinedAnswers.append(predifinedAnswer)
-                        answer = None
-                    answer_object = Answer.objects.create(
-                        incident = incident,
-                        question = question,
-                        answer = answer,
-                    )
-                    answer_object.PredifinedAnswer.set(predifinedAnswers)
+        #save questions
+        saveAnswers(2, data, incident)
 
         return HttpResponseRedirect("incident_list")
     
@@ -202,7 +171,21 @@ class FinalNotificationWizardView(SessionWizardView):
     
     def done(self, form_list, **kwargs):
         data = [form.cleaned_data for form in form_list]
-        position = 0
+        if self.incident is None:
+            self.incident = Incident.objects.get(pk=self.request.incident)
+        
+        print(data[0])
+        #manage impacts
+        for key, values in data[0].items():
+            for v in values:
+                self.incident.impacts.add(int(v))
+
+        self.incident.save()
+        # manage question
+        saveAnswers(1, data, self.incident)
+
+  
+
         # for form in form_list:
         #     print(position)
         #     if position >1:
@@ -215,4 +198,32 @@ class FinalNotificationWizardView(SessionWizardView):
         
         return HttpResponseRedirect("../incident_list")
     
-    
+def saveAnswers(index = 0, data = None, incident = None):
+    predifinedAnswers = []
+    for d in range(index, len(data)):
+        for key, value in data[d].items():
+            question_id = None
+            try:
+                question_id = int(key)
+            except:
+                pass
+            if question_id is not None:
+                question = Question.objects.get(pk=key)
+                if question.question_type == 'FREETEXT':
+                    answer = value
+                    predifinedAnswer = None
+                elif question.question_type =='DATE':
+                    answer = value.strftime('%m/%d/%Y')
+                    predifinedAnswer
+                else : #MULTI
+                    predifinedAnswers = []
+                    for val in value:
+                        predifinedAnswer = PredifinedAnswer.objects.get(pk=val)
+                        predifinedAnswers.append(predifinedAnswer)
+                    answer = None
+                answer_object = Answer.objects.create(
+                    incident = incident,
+                    question = question,
+                    answer = answer,
+                )
+                answer_object.PredifinedAnswer.set(predifinedAnswers) 
