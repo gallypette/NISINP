@@ -175,12 +175,8 @@ class FinalNotificationWizardView(SessionWizardView):
         return super(FinalNotificationWizardView, self).__init__(**kwargs)
 
     def get_form(self, step=None, data=None, files=None):
-        #we get the incident
-        print('self.request')
-        print(self.request.incident)
         if self.request.incident:
             self.incident = Incident.objects.get(pk=self.request.incident)
-        print(self.incident)
         if step is None:
             step = self.steps.current
         position = int(step)
@@ -215,73 +211,7 @@ class FinalNotificationWizardView(SessionWizardView):
         #         data.append(form.cleaned_data)
         #     position = position +1
         print(data)
-        user = None
-        if self.request.user.is_authenticated:
-            user = self.request.user
-        incident = Incident.objects.create(
-            contact_lastname = data[0]['contact_lastname'],
-            contact_firstname = data[0]['contact_firstname'],
-            contact_title = data[0]['contact_title'],
-            contact_email = data[0]['contact_email'],
-            contact_telephone = data[0]['contact_telephone'],
-            #technical contact
-            technical_lastname = data[0]['technical_lastname'],
-            technical_firstname = data[0]['technical_firstname'],
-            technical_title = data[0]['technical_title'],
-            technical_email = data[0]['technical_email'],
-            technical_telephone = data[0]['technical_telephone'],
-            
-            incident_reference = data[0]['incident_reference'],
-            complaint_reference = data[0]['complaint_reference'],
-            contact_user = user
-        )
-        for regulation in data[1]['regulation']:
-            incident.regulations.add(regulation)
-        for service in data[1]['affected_services']:
-            try:
-                service = int(service)
-                incident.affected_services.add(service)
-            except:
-                pass
         
-        for d in range(2, len(data)):
-            print('data d')
-            print(data[d])
-            for key, value in data[d].items():
-                question_id = None
-                try:
-                    question_id = int(key)
-                except:
-                    pass
-                if question_id is not None:
-                    print('key')
-                    print(key)
-                    print('value')
-                    print(value)
-                    question = Question.objects.get(pk=key)
-                    if question.question_type == 'FREETEXT':
-                        answer = value
-                        predifinedAnswer = None
-                    elif question.question_type =='DATE':
-                        answer = value.strftime('%m/%d/%Y')
-                        predifinedAnswer
-                    else : 
-                        predifinedAnswers = []
-                        for val in value:
-                            predifinedAnswer = PredifinedAnswer.objects.get(pk=val)
-                            predifinedAnswers.append(predifinedAnswer)
-                        answer = None
-                    answer_object = Answer.objects.create(
-                        incident = incident,
-                        question = question,
-                        answer = answer,
-                    )
-                    answer_object.PredifinedAnswer.set(predifinedAnswers)
-
-        
-        # return render(self.request, 'incident_list', {
-        #     'form_data': [form.cleaned_data for form in form_list],
-        # })
-        return HttpResponseRedirect("incident_list")
+        return HttpResponseRedirect("../incident_list")
     
     

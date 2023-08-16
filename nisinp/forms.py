@@ -1,6 +1,6 @@
 from django_otp.forms import OTPAuthenticationForm
 from django import forms
-from .models import Question, QuestionCategory, RegulationType, Services, Sector
+from .models import Question, QuestionCategory, RegulationType, Services, Sector, Impact
 
 class AuthenticationForm(OTPAuthenticationForm):
     otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
@@ -194,12 +194,51 @@ class ImpactedServicesForm(forms.Form):
     )
 
 class ImpactForFinalNotificationForm(forms.Form):
+    # generic impact definitions
+    choices = Impact.objects.values_list("id", "translations").filter(is_generic_impact = True)
+    generic_impact = forms.MultipleChoiceField(
+        required= True,
+        choices=choices,
+        widget=forms.CheckboxSelectMultiple(
+            attrs={"class": "multiple-selection"}
+        ),
+        label='Generic impacts',
+    )
+
+    # create the questions for the impacted sectors
+    def create_questions(self, affected_services):
+        sectors = []
+        for service in affected_services:
+            sectors.append(service.sector)
+            print('service')
+            print(service)
+            for sector in sectors:
+                choices = []
+                choices.append(['dede','dede'])
+                print('self.fields')
+                print(self.fields)
+                # for choice in question.predifined_answers.all():
+                #     choices.append([choice.id, choice])
+                self.fields[str(sector.id)] = forms.MultipleChoiceField(
+                    required= True,
+                    choices=choices,
+                    widget=forms.CheckboxSelectMultiple(
+                        attrs={"class": "multiple-selection"}
+                    ),
+                    label=sector.name,
+                )
+
     def __init__(self, *args, **kwargs):
         if 'incident' in kwargs:
             incident = kwargs.pop("incident") 
-            affected_services = incident.affected_services
-            
-        super(ImpactForFinalNotificationForm, self).__init__(*args, **kwargs)
+            super(ImpactForFinalNotificationForm, self).__init__(*args, **kwargs)
+            affected_services = incident.affected_services.all()
+            sectors = []
+            super(ImpactForFinalNotificationForm, self).__init__(*args, **kwargs)
+            self.create_questions(affected_services)
+        else:
+            super(ImpactForFinalNotificationForm, self).__init__(*args, **kwargs)
+        
 
 def get_number_of_question(is_preliminary = True):
     categories = QuestionCategory.objects.all().filter(question__is_preliminary = is_preliminary).distinct()
