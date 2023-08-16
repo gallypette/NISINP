@@ -7,10 +7,6 @@ class AuthenticationForm(OTPAuthenticationForm):
     otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
     otp_challenge = forms.CharField(required=False, widget=forms.HiddenInput)
 
-# just a class to pass some python check
-class DummyForm(forms.Form):
-    pass
-
 # create a form for each category and add fields which represent questions
 class QuestionForm(forms.Form):
 
@@ -46,14 +42,18 @@ class QuestionForm(forms.Form):
             question = kwargs.pop("question") 
         if 'position' in kwargs:
             position = kwargs.pop("position")
+        if 'is_preliminary' in kwargs:
+            is_preliminary = kwargs.pop("is_preliminary")
+        else:
+            is_preliminary = True
         super(QuestionForm, self).__init__(*args, **kwargs)
         
         if position > -1:
             question = questions[position] 
             categories = QuestionCategory.objects.all().order_by(
-            'position').filter(question__is_preliminary = True).distinct()
+            'position').filter(question__is_preliminary = is_preliminary).distinct()
             category = categories[position]
-            questions = Question.objects.all().filter(category=category, is_preliminary= True)
+            questions = Question.objects.all().filter(category=category, is_preliminary= is_preliminary)
             for question in questions:
                 self.create_question(question)
             

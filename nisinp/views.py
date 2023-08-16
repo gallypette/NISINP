@@ -192,7 +192,8 @@ class FinalNotificationWizardView(SessionWizardView):
             #     print(form.errors)
             #     print('form.is_bound')
             #     print(form.is_bound)
-            
+        elif position > 0:
+            form = QuestionForm(data, position = position -1, is_preliminary = False)
 
         else:
             form = super(FinalNotificationWizardView, self).get_form(step, data, files)
