@@ -9,6 +9,19 @@ from .managers import CustomUserManager
 
 from datetime import date
 
+# impacts of the incident, they are linked to sector
+class Impact(TranslatableModel):
+    translations = TranslatedFields(
+        label = models.TextField()
+    )
+    is_generic_impact = models.BooleanField(
+        default=False, 
+        verbose_name=_("Generic Impact")
+    )
+
+    def __str__(self):
+        return self.label
+    
 # sector
 class Sector(TranslatableModel):
     translations = TranslatedFields(name=models.CharField(max_length=100))
@@ -20,6 +33,7 @@ class Sector(TranslatableModel):
         default=None,
         verbose_name=_("parent"),
     )
+    specific_impact = models.ManyToManyField(Impact, default = None)
 
     def __str__(self):
         return self.name
@@ -217,6 +231,7 @@ class Incident(models.Model):
     affected_services = models.ManyToManyField(Services)
     regulations = models.ManyToManyField(RegulationType)
     final_notification_date = models.DateField(null=True, blank=True)
+    impacts = models.ManyToManyField(Impact, default = None)
 
 #answers
 class Answer(models.Model):
