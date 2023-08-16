@@ -232,6 +232,10 @@ class Incident(models.Model):
     regulations = models.ManyToManyField(RegulationType)
     final_notification_date = models.DateField(null=True, blank=True)
     impacts = models.ManyToManyField(Impact, default = None)
+    is_significative_impact = models.BooleanField(
+        default=False, 
+        verbose_name=_("Significative impact")
+    )
 
 #answers
 class Answer(models.Model):

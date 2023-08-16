@@ -18,7 +18,7 @@ class QuestionForm(forms.Form):
             for choice in question.predifined_answers.all():
                 choices.append([choice.id, choice])
             self.fields[str(question.id)] = forms.MultipleChoiceField(
-                required= True,
+                required= question.is_mandatory,
                 choices=choices,
                 widget=forms.CheckboxSelectMultiple(
                     attrs={"class": "multiple-selection"}
@@ -27,11 +27,12 @@ class QuestionForm(forms.Form):
             )
         elif question.question_type == 'DATE':
             self.fields[str(question.id)] = forms.DateField(
-                widget=forms.SelectDateWidget()
+                widget=forms.SelectDateWidget(),
+                required= question.is_mandatory,
             )
             self.fields[str(question.id)].label = question.label
         elif question.question_type == 'FREETEXT':
-            self.fields[str(question.id)] = forms.CharField(required=False)
+            self.fields[str(question.id)] = forms.CharField(required= question.is_mandatory)
             self.fields[str(question.id)].label = question.label
 
     def __init__(self, *args, **kwargs):
@@ -197,7 +198,7 @@ class ImpactedServicesForm(forms.Form):
 class ImpactForFinalNotificationForm(forms.Form):
     # generic impact definitions
     generic_impact = forms.MultipleChoiceField(
-        required= True,
+        required= False,
         choices=[],
         widget=forms.CheckboxSelectMultiple(
             attrs={"class": "multiple-selection"}
@@ -216,7 +217,7 @@ class ImpactForFinalNotificationForm(forms.Form):
                     for k in sector.specific_impact.all()
                 ]
                 self.fields[str(sector.id)] = forms.MultipleChoiceField(
-                    required= True,
+                    required= False,
                     choices=choices,
                     widget=forms.CheckboxSelectMultiple(
                         attrs={"class": "multiple-selection"}
@@ -229,7 +230,6 @@ class ImpactForFinalNotificationForm(forms.Form):
             incident = kwargs.pop("incident") 
             super(ImpactForFinalNotificationForm, self).__init__(*args, **kwargs)
             affected_services = incident.affected_services.all()
-            sectors = []
             super(ImpactForFinalNotificationForm, self).__init__(*args, **kwargs)
             self.create_questions(affected_services)
         else:
