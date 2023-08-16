@@ -7,8 +7,7 @@ from django_otp.decorators import otp_required
 from .forms import  ContactForm, QuestionForm, get_number_of_question, ImpactForFinalNotificationForm
 from .models import Incident, Answer, Question, PredifinedAnswer
 
-import datetime
-
+from datetime import date
 
 from django.http import HttpResponseRedirect
 
@@ -87,7 +86,6 @@ class FormWizardView(SessionWizardView):
         position = int(step)
         # when we have passed the fixed forms
         if position > 1:
-            print(position)
             # create the form with the correct question/answers
             form = QuestionForm(data, position=position-2)
 
@@ -99,7 +97,6 @@ class FormWizardView(SessionWizardView):
     
     def done(self, form_list, **kwargs):
         data = [form.cleaned_data for form in form_list]
-        print(data)
         user = None
         if self.request.user.is_authenticated:
             user = self.request.user
@@ -151,16 +148,11 @@ class FinalNotificationWizardView(SessionWizardView):
         position = int(step)
         # when we have passed the fixed forms
         if position == 0:
-            print(position)
             # create the form with the correct question/answers
             form = ImpactForFinalNotificationForm(data, incident=self.incident)
 
             return form
-            # if not form.is_valid():
-            #     print('form.errors')
-            #     print(form.errors)
-            #     print('form.is_bound')
-            #     print(form.is_bound)
+
         elif position > 0:
             form = QuestionForm(data, position = position -1, is_preliminary = False)
 
@@ -174,7 +166,6 @@ class FinalNotificationWizardView(SessionWizardView):
         if self.incident is None:
             self.incident = Incident.objects.get(pk=self.request.incident)
         
-        print(data[0])
         #manage impacts
         self.incident.is_significative_impact = False
         for key, values in data[0].items():
@@ -183,21 +174,10 @@ class FinalNotificationWizardView(SessionWizardView):
                 self.incident.is_significative_impact = True
                 self.incident.impacts.add(int(v))
 
+        self.incident.final_notification_date = date.today()
         self.incident.save()
         # manage question
         saveAnswers(1, data, self.incident)
-
-  
-
-        # for form in form_list:
-        #     print(position)
-        #     if position >1:
-        #         for f in form.forms:
-        #             data.append(f.cleaned_data)
-        #     else:
-        #         data.append(form.cleaned_data)
-        #     position = position +1
-        print(data)
         
         return HttpResponseRedirect("../incident_list")
     
