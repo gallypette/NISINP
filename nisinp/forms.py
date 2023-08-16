@@ -1,6 +1,7 @@
 from django_otp.forms import OTPAuthenticationForm
 from django import forms
 from .models import Question, QuestionCategory, RegulationType, Services, Sector, Impact
+from django.utils.translation import gettext as _
 
 class AuthenticationForm(OTPAuthenticationForm):
     otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
@@ -195,10 +196,9 @@ class ImpactedServicesForm(forms.Form):
 
 class ImpactForFinalNotificationForm(forms.Form):
     # generic impact definitions
-    choices = Impact.objects.values_list("id", "translations").filter(is_generic_impact = True)
     generic_impact = forms.MultipleChoiceField(
         required= True,
-        choices=choices,
+        choices=[],
         widget=forms.CheckboxSelectMultiple(
             attrs={"class": "multiple-selection"}
         ),
@@ -238,6 +238,11 @@ class ImpactForFinalNotificationForm(forms.Form):
             self.create_questions(affected_services)
         else:
             super(ImpactForFinalNotificationForm, self).__init__(*args, **kwargs)
+        #init the generic choices
+        self.fields['generic_impact'].choices = [
+            (k.id, k.label)
+            for k in Impact.objects.all().filter(is_generic_impact = True)
+        ]
         
 
 def get_number_of_question(is_preliminary = True):
