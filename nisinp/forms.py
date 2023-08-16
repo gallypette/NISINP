@@ -210,15 +210,11 @@ class ImpactForFinalNotificationForm(forms.Form):
         sectors = []
         for service in affected_services:
             sectors.append(service.sector)
-            print('service')
-            print(service)
             for sector in sectors:
-                choices = []
-                choices.append(['dede','dede'])
-                print('self.fields')
-                print(self.fields)
-                # for choice in question.predifined_answers.all():
-                #     choices.append([choice.id, choice])
+                choices = [
+                    (k.id, k.label)
+                    for k in sector.specific_impact.all()
+                ]
                 self.fields[str(sector.id)] = forms.MultipleChoiceField(
                     required= True,
                     choices=choices,
