@@ -168,6 +168,7 @@ class FinalNotificationWizardView(SessionWizardView):
         
         #manage impacts
         self.incident.is_significative_impact = False
+        self.incident.impacts.set([])
         for key, values in data[0].items():
             for v in values:
                 #if we go there some values have been ticked so the impact is significative

@@ -196,6 +196,8 @@ class ImpactedServicesForm(forms.Form):
     )
 
 class ImpactForFinalNotificationForm(forms.Form):
+    #list of impact present in the incident table
+    initial_data = []
     # generic impact definitions
     generic_impact = forms.MultipleChoiceField(
         required= False,
@@ -207,7 +209,7 @@ class ImpactForFinalNotificationForm(forms.Form):
     )
 
     # create the questions for the impacted sectors
-    def create_questions(self, affected_services):
+    def create_questions(self, affected_services, initial_data = []):
         sectors = []
         for service in affected_services:
             sectors.append(service.sector)
@@ -223,15 +225,18 @@ class ImpactForFinalNotificationForm(forms.Form):
                         attrs={"class": "multiple-selection"}
                     ),
                     label=sector.name,
+                    initial = initial_data
                 )
 
     def __init__(self, *args, **kwargs):
         if 'incident' in kwargs:
             incident = kwargs.pop("incident") 
-            super(ImpactForFinalNotificationForm, self).__init__(*args, **kwargs)
+            # get initial data if there are existing
+            if incident is not None:
+                initial_data = list(incident.impacts.values_list('id', flat=True))
             affected_services = incident.affected_services.all()
             super(ImpactForFinalNotificationForm, self).__init__(*args, **kwargs)
-            self.create_questions(affected_services)
+            self.create_questions(affected_services, initial_data)
         else:
             super(ImpactForFinalNotificationForm, self).__init__(*args, **kwargs)
         #init the generic choices
@@ -239,6 +244,7 @@ class ImpactForFinalNotificationForm(forms.Form):
             (k.id, k.label)
             for k in Impact.objects.all().filter(is_generic_impact = True)
         ]
+        self.fields['generic_impact'].initial = initial_data
         
 
 def get_number_of_question(is_preliminary = True):

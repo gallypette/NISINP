@@ -20,7 +20,7 @@
             {% if incident.final_notification_date is None %}
                 <td><a href="{% url 'final-notification' incident.id %}">Make the final declaration</a></td>
             {% else %}
-                <td>Update the final declaration</td>
+                <td><a href="{% url 'final-notification' incident.id %}">Update the final declaration</a></td>
             {% endif %}
         </tr>
         {% endfor %}
