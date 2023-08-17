@@ -1,7 +1,10 @@
 from django_otp.forms import OTPAuthenticationForm
 from django import forms
-from .models import Question, QuestionCategory, RegulationType, Services, Sector, Impact
+from .models import Question, QuestionCategory, RegulationType, Services, Sector, Impact, Answer
 from django.utils.translation import gettext as _
+from operator import is_not
+from functools import partial
+from datetime import date, datetime
 
 class AuthenticationForm(OTPAuthenticationForm):
     otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
@@ -9,12 +12,18 @@ class AuthenticationForm(OTPAuthenticationForm):
 
 # create a form for each category and add fields which represent questions
 class QuestionForm(forms.Form):
-
     label = forms.CharField(widget=forms.HiddenInput(), required=False)
     # for dynamicly add question to forms
-    def create_question(self, question):
+    def create_question(self, question, incident = None):
+        initial_data = []
         if question.question_type == 'MULTI':
             choices = []
+            if incident is not None:
+                initial_data = list(filter(partial(is_not, None),
+                    Answer.objects.values_list(
+                        'PredifinedAnswer', flat = True).filter(question=question, incident = incident)
+                    )
+                )
             for choice in question.predifined_answers.all():
                 choices.append([choice.id, choice])
             self.fields[str(question.id)] = forms.MultipleChoiceField(
@@ -24,25 +33,50 @@ class QuestionForm(forms.Form):
                     attrs={"class": "multiple-selection"}
                 ),
                 label=question.label,
+                initial = initial_data,
             )
         elif question.question_type == 'DATE':
+            initial_data = list(filter(partial(is_not, ''),
+                    Answer.objects.values_list(
+                        'answer', flat = True).filter(question=question, incident = incident)
+                    )
+                )[0]
+            initial_data = datetime.strptime(initial_data, "%m/%d/%Y").date()
             self.fields[str(question.id)] = forms.DateField(
                 widget=forms.SelectDateWidget(),
                 required= question.is_mandatory,
+                initial=initial_data,
             )
             self.fields[str(question.id)].label = question.label
         elif question.question_type == 'FREETEXT':
-            self.fields[str(question.id)] = forms.CharField(required= question.is_mandatory)
-            self.fields[str(question.id)].label = question.label
+            initial_data = ''
+            if incident is not None:
+                initial_data = list(filter(partial(is_not, ''),
+                    Answer.objects.values_list(
+                        'answer', flat = True).filter(question=question, incident = incident)
+                    )
+                )[0]
+            self.fields[str(question.id)] = forms.CharField(
+                required= question.is_mandatory,
+                widget=forms.TextInput(
+                    attrs={'value':str(initial_data)}    
+                ),
+                label = question.label
+            )
 
     def __init__(self, *args, **kwargs):
         questions = Question.objects.all().order_by('position')
         question = questions[1]
         position = -1
+        print(kwargs)
         if 'question' in kwargs:
             question = kwargs.pop("question") 
         if 'position' in kwargs:
             position = kwargs.pop("position")
+        if 'incident' in kwargs:
+            incident = kwargs.pop("incident")
+        else:
+            incident = None
         if 'is_preliminary' in kwargs:
             is_preliminary = kwargs.pop("is_preliminary")
         else:
@@ -56,7 +90,7 @@ class QuestionForm(forms.Form):
             category = categories[position]
             questions = Question.objects.all().filter(category=category, is_preliminary= is_preliminary)
             for question in questions:
-                self.create_question(question)
+                self.create_question(question, incident)
             
 
 # the first question for preliminary notification

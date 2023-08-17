@@ -154,7 +154,12 @@ class FinalNotificationWizardView(SessionWizardView):
             return form
 
         elif position > 0:
-            form = QuestionForm(data, position = position -1, is_preliminary = False)
+            form = QuestionForm(
+                data, 
+                position = position -1, 
+                is_preliminary = False, 
+                incident = self.incident
+            )
 
         else:
             form = super(FinalNotificationWizardView, self).get_form(step, data, files)
