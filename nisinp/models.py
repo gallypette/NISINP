@@ -4,6 +4,10 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from parler.models import TranslatableModel, TranslatedFields
 
+from .globals import (
+    QUESTION_TYPES,
+)
+
 from .managers import CustomUserManager
 
 from datetime import date
@@ -146,8 +150,9 @@ class QuestionCategory(TranslatableModel):
 class Question(TranslatableModel):
     question_type = models.CharField(
         max_length = 10, 
+        choices = QUESTION_TYPES,
         blank = False, 
-        default = 'FREETEXT'
+        default = QUESTION_TYPES[0][0]
     ) #MULTI, FREETEXT, DATE,
     is_mandatory = models.BooleanField(default=False, verbose_name=_("Mandatory"))
     is_preliminary = models.BooleanField(default=False, verbose_name=_("Preliminary"))
