@@ -198,6 +198,9 @@ def saveAnswers(index = 0, data = None, incident = None):
                 pass
             if question_id is not None:
                 question = Question.objects.get(pk=key)
+                #we delete the previous answer in case we are doing an additional notification
+                if incident is not None:
+                    Answer.objects.filter(question=question, incident = incident).delete()
                 if question.question_type == 'FREETEXT':
                     answer = value
                     predifinedAnswer = None

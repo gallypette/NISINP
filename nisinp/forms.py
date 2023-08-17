@@ -4,7 +4,7 @@ from .models import Question, QuestionCategory, RegulationType, Services, Sector
 from django.utils.translation import gettext as _
 from operator import is_not
 from functools import partial
-from datetime import date, datetime
+from datetime import datetime
 
 class AuthenticationForm(OTPAuthenticationForm):
     otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
@@ -68,7 +68,6 @@ class QuestionForm(forms.Form):
         questions = Question.objects.all().order_by('position')
         question = questions[1]
         position = -1
-        print(kwargs)
         if 'question' in kwargs:
             question = kwargs.pop("question") 
         if 'position' in kwargs:
