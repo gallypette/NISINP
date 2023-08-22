@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     "import_export",
     "parler",
     "formtools",
+    "django.forms"
 ]
 
 context_processors = [
@@ -141,6 +142,7 @@ TEMPLATES = [
         "DIRS": [
             "templates",
             "theme/templates",
+            "widget"
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -228,6 +230,8 @@ STATICFILES_DIRS = [
 CORS_EXPOSE_HEADERS = [
     "content-disposition",
 ]
+
+FORM_RENDERER = 'django.forms.renderers.TemplatesSetting' 
 
 # Default settings
 BOOTSTRAP5 = {

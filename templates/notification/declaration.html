@@ -1,4 +1,7 @@
 {% extends 'home/base.html' %}
+{% load django_bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
 {% block content %}
 <p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
 <form action="" method="post">
@@ -7,11 +10,11 @@
   {{ wizard.management_form }}
   {% if wizard.form.forms %}
     {{ wizard.form.management_form }}
-    {% for form in wizard.form.forms %}
-      {{ form }}
+    {% for form in wizard.form.forms  %}
+      {% bootstrap_form form  %}
     {% endfor %}
   {% else %}
-    {{ wizard.form }}
+    {% bootstrap_form wizard.form%}
   {% endif %}
   </table>
   {% if wizard.steps.prev %}
