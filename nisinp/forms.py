@@ -9,14 +9,14 @@ from datetime import datetime
 from django.forms.widgets import ChoiceWidget
 
 # TO DO: change the templates to custom one
-class MyCheckboxSelectMultiple(ChoiceWidget):
+class ServicesListCheckboxSelectMultiple(ChoiceWidget):
     allow_multiple_selected = True
     input_type = 'checkbox'
-    template_name = 'django/forms/widgets/checkbox_select.html'
-    option_template_name = 'django/forms/widgets/checkbox_option.html'
+    template_name = 'django/forms/widgets/service_checkbox_select.html'
+    option_template_name = 'django/forms/widgets/service_checkbox_option.html'
 
     def __init__(self, *args, **kwargs):
-        super(MyCheckboxSelectMultiple, self).__init__(*args, **kwargs)
+        super(ServicesListCheckboxSelectMultiple, self).__init__(*args, **kwargs)
 
 class AuthenticationForm(OTPAuthenticationForm):
     otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
@@ -258,7 +258,7 @@ class ImpactedServicesForm(forms.Form):
     affected_services = forms.MultipleChoiceField(
         required = False,
         choices = choices_serv,
-        widget=MyCheckboxSelectMultiple(
+        widget=ServicesListCheckboxSelectMultiple(
             attrs={"class": "multiple-selection"}
         ),
     )
