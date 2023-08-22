@@ -48,12 +48,13 @@ class QuestionForm(forms.Form):
                 initial = initial_data,
             )
         elif question.question_type == 'DATE':
-            initial_data = list(filter(partial(is_not, ''),
-                    Answer.objects.values_list(
-                        'answer', flat = True).filter(question=question, incident = incident)
-                    )
-                )[0]
-            initial_data = datetime.strptime(initial_data, "%m/%d/%Y").date()
+            initial_data = ''
+            if incident is not None:
+                answer = Answer.objects.values_list(
+                            'answer', flat = True).filter(question=question, incident = incident)
+                if len(answer) > 0:
+                    initial_data = list(filter(partial(is_not, ''),answer))[0]
+                    initial_data = datetime.strptime(initial_data, "%m/%d/%Y").date()
             self.fields[str(question.id)] = forms.DateField(
                 widget=forms.SelectDateWidget(),
                 required= question.is_mandatory,
@@ -63,11 +64,13 @@ class QuestionForm(forms.Form):
         elif question.question_type == 'FREETEXT':
             initial_data = ''
             if incident is not None:
-                initial_data = list(filter(partial(is_not, ''),
-                    Answer.objects.values_list(
+                answer = Answer.objects.values_list(
                         'answer', flat = True).filter(question=question, incident = incident)
-                    )
-                )[0]
+                if len(answer)>0:
+                    initial_data = list(filter(partial(is_not, ''),
+                        answer
+                        )
+                    )[0]
             self.fields[str(question.id)] = forms.CharField(
                 required= question.is_mandatory,
                 widget=forms.TextInput(
@@ -204,16 +207,36 @@ class ContactForm(forms.Form):
 
 # prepare an array of sector and services        
 def construct_services_array(root_categories):
-    choices_serv = []
-    for root_category in root_categories:
-        #keep integer for the services to avoid to register a false services
-        choices_serv.append(['service'+ str(root_category.id), root_category])
-        for service in Services.objects.all().filter(sector=root_category):
-            choices_serv.append([service.id,service])
-        if(len(Sector.objects.all().filter(parent=root_category))>0):
-                choices_serv += construct_services_array(Sector.objects.all().filter(parent=root_category))
+    categs = dict()
+    services = Services.objects.all()
 
-    return choices_serv
+    final_categs = []
+    for service in services:
+        if not categs.get(service.sector):
+            categs[service.sector] = [[service.id, service]]
+        else:
+            categs[service.sector].append([service.id, service])
+
+    for sector, list_of_options in categs.items():
+        name = sector.name
+        while sector.parent is not None:
+            name = sector.parent.name+' - '+name
+            sector = sector.parent
+        # [optgroup, [options]]
+        final_categs.append([name, list_of_options])
+
+    return final_categs
+
+    # choices_serv = []
+    # for root_category in root_categories:
+    #     #keep integer for the services to avoid to register a false services
+    #     choices_serv.append(['service'+ str(root_category.id), root_category])
+    #     for service in Services.objects.all().filter(sector=root_category):
+    #         choices_serv.append([service.id,service])
+    #     if(len(Sector.objects.all().filter(parent=root_category))>0):
+    #             choices_serv += construct_services_array(Sector.objects.all().filter(parent=root_category))
+
+    # return choices_serv
 
 # the affected services with services load from services table
 class ImpactedServicesForm(forms.Form):

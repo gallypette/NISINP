@@ -142,7 +142,6 @@ TEMPLATES = [
         "DIRS": [
             "templates",
             "theme/templates",
-            "widget"
         ],
         "APP_DIRS": True,
         "OPTIONS": {
