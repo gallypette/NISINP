@@ -18,6 +18,104 @@ class ServicesListCheckboxSelectMultiple(ChoiceWidget):
     def __init__(self, *args, **kwargs):
         super(ServicesListCheckboxSelectMultiple, self).__init__(*args, **kwargs)
 
+
+# to add the other choice with input text when we are in  MULTI
+# TO DO : improve layout
+class OtherCheckboxSelectMultiple(ChoiceWidget):
+
+    allow_multiple_selected = True
+    input_type = 'checkbox'
+    template_name = 'django/forms/widgets/other_checkbox_select.html'
+    option_template_name = 'django/forms/widgets/other_checkbox_option.html'
+
+    def __init__(self, *args, **kwargs):
+        super(OtherCheckboxSelectMultiple, self).__init__(*args, **kwargs)
+    
+    #this is the standard optgroups function, just add a hook to add new input
+    # and modify the CSS class
+    def optgroups(self, name, value, attrs=None):
+        """Return a list of optgroups for this widget."""
+        groups = []
+        has_selected = False
+        
+        for index, (option_value, option_label) in enumerate(self.choices):
+            if option_value is None:
+                option_value = ""
+            subgroup = []
+            if isinstance(option_label, (list, tuple)):
+                group_name = option_value
+                subindex = 0
+                choices = option_label
+            else:
+                group_name = None
+                subindex = None
+                choices = [(option_value, option_label)]
+            groups.append((group_name, subgroup, index))
+
+            other_choices = []
+            for subvalue, sublabel in choices:
+                selected = (not has_selected or self.allow_multiple_selected) and str(
+                    subvalue
+                ) in value
+                has_selected |= selected
+                attrs["class"] = attrs["class"]+" flex-checkbox"
+                subgroup.append(
+                    self.create_option(
+                        name,
+                        subvalue,
+                        sublabel,
+                        selected,
+                        index,
+                        subindex=subindex,
+                        attrs=attrs,
+                    )
+                )
+                if option_label.allowed_additional_answer:
+                    other_choices.append(sublabel)
+                if subindex is not None:
+                    subindex += 1
+            for other_choice in other_choices:
+                subgroup.append(
+                        self.add_other_choice(
+                            name,
+                            subvalue,
+                            other_choice,
+                            index,
+                            subindex=subindex,
+                            attrs=attrs,
+                        )
+                    )
+                if subindex is not None:
+                    subindex += 1
+        return groups
+    
+    # function to add the input text
+    def add_other_choice(
+        self, name, value, label, index, subindex=None, attrs=None
+    ):
+        index = str(index) if subindex is None else "%s_%s" % (index, subindex)
+        option_attrs = (
+            self.build_attrs(self.attrs, attrs) if self.option_inherits_attrs else {}
+        )
+        if "id" in option_attrs:
+            option_attrs["id"] = self.id_for_label(option_attrs["id"], index)+'_answer'
+        option_attrs["class"] = "flex-child "
+        if hasattr(label, 'answer'):
+            value=label.answer
+        else:
+            value = ''
+        return {
+            "name": name+'_answer',
+            "value": value,
+            "label": label,
+            "index": index,
+            "attrs": option_attrs,
+            "type": 'text',
+            "template_name": 'django/forms/widgets/text.html',
+            "wrap_label": True,
+        }
+
+    
 class AuthenticationForm(OTPAuthenticationForm):
     otp_device = forms.CharField(required=False, widget=forms.HiddenInput)
     otp_challenge = forms.CharField(required=False, widget=forms.HiddenInput)
@@ -41,8 +139,8 @@ class QuestionForm(forms.Form):
             self.fields[str(question.id)] = forms.MultipleChoiceField(
                 required= question.is_mandatory,
                 choices=choices,
-                widget=forms.CheckboxSelectMultiple(
-                    attrs={"class": "multiple-selection"}
+                widget=OtherCheckboxSelectMultiple(
+                    #attrs={"class": "multiple-selection"}
                 ),
                 label=question.label,
                 initial = initial_data,
@@ -66,7 +164,7 @@ class QuestionForm(forms.Form):
             if incident is not None:
                 answer = Answer.objects.values_list(
                         'answer', flat = True).filter(question=question, incident = incident)
-                if len(answer)>0:
+                if  answer[0] != '':
                     initial_data = list(filter(partial(is_not, ''),
                         answer
                         )

@@ -98,6 +98,8 @@ class FormWizardView(SessionWizardView):
     def done(self, form_list, **kwargs):
         data = [form.cleaned_data for form in form_list]
         user = None
+        # TO DO : Take the company from the selection module
+        company = None
         if self.request.user.is_authenticated:
             user = self.request.user
         incident = Incident.objects.create(
@@ -115,7 +117,8 @@ class FormWizardView(SessionWizardView):
             
             incident_reference = data[0]['incident_reference'],
             complaint_reference = data[0]['complaint_reference'],
-            contact_user = user
+            contact_user = user,
+            company = company,
         )
         for regulation in data[1]['regulation']:
             incident.regulations.add(regulation)
