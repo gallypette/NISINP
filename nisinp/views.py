@@ -216,6 +216,8 @@ def saveAnswers(index = 0, data = None, incident = None):
                         predifinedAnswer = PredifinedAnswer.objects.get(pk=val)
                         predifinedAnswers.append(predifinedAnswer)
                     answer = None
+                    if data[d].get(key+'_answer'):
+                        answer = data[d][key+'_answer']
                 answer_object = Answer.objects.create(
                     incident = incident,
                     question = question,

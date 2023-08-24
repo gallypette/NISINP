@@ -100,13 +100,14 @@ class OtherCheckboxSelectMultiple(ChoiceWidget):
         if "id" in option_attrs:
             option_attrs["id"] = self.id_for_label(option_attrs["id"], index)+'_answer'
         option_attrs["class"] = "flex-child "
+        newValue = ''
         if hasattr(label, 'answer'):
-            value=label.answer
+            newValue=label.answer
         else:
-            value = ''
+            newValue = ''
         return {
-            "name": name+'_answer',
-            "value": value,
+            "name": str(value)+'_answer_input',
+            "value": newValue,
             "label": label,
             "index": index,
             "attrs": option_attrs,
@@ -126,7 +127,8 @@ class QuestionForm(forms.Form):
     # for dynamicly add question to forms
     def create_question(self, question, incident = None):
         initial_data = []
-        if question.question_type == 'MULTI':
+        if question.question_type == 'MULTI' or question.question_type == 'MT':
+            initial_answer = ''
             choices = []
             if incident is not None:
                 initial_data = list(filter(partial(is_not, None),
@@ -139,12 +141,28 @@ class QuestionForm(forms.Form):
             self.fields[str(question.id)] = forms.MultipleChoiceField(
                 required= question.is_mandatory,
                 choices=choices,
-                widget=OtherCheckboxSelectMultiple(
+                widget=forms.CheckboxSelectMultiple(
                     #attrs={"class": "multiple-selection"}
                 ),
                 label=question.label,
                 initial = initial_data,
             )
+            if question.question_type == 'MT':
+                answer = Answer.objects.values_list(
+                        'answer', flat = True).filter(question=question, incident = incident)
+                if  answer[0] != '':
+                    initial_answer = list(filter(partial(is_not, ''),
+                        answer
+                        )
+                    )[0]
+                self.fields[str(question.id)+'_answer'] = forms.CharField(
+                    required = False,
+                    widget=forms.TextInput(
+                        attrs = {"class":"multichoice_input_freetext",
+                                 "value":str(initial_answer)}
+                    ),
+                    label='Add precision'
+                )
         elif question.question_type == 'DATE':
             initial_data = ''
             if incident is not None:
@@ -203,6 +221,16 @@ class QuestionForm(forms.Form):
             questions = Question.objects.all().filter(category=category, is_preliminary= is_preliminary)
             for question in questions:
                 self.create_question(question, incident)
+   
+    #get the strange raw data to put in the hidden field
+    # def clean(self):
+    #     answers = []
+    #     for additional_answer in self.additional_answers:
+    #         answers.append([additional_answer,self.data.get(additional_answer+'_input')])
+    #     cleaned_data = super().clean()
+    #     for index, value in answers:
+    #         cleaned_data[index] = value
+        
             
 
 # the first question for preliminary notification
