@@ -88,7 +88,9 @@ INSTALLED_APPS = [
     "import_export",
     "parler",
     "formtools",
-    "django.forms"
+    "django.forms",
+    "django_countries",
+    "jquery"
 ]
 
 context_processors = [

@@ -23,6 +23,7 @@ django-formtools = "^2.4"
 django-two-factor-auth = "^1.15.2"
 phonenumbers = "^8.13.11"
 parler = "^1.0.1"
+django-countries = "^7.5.1"
 
 
 [tool.poetry.group.dev.dependencies]

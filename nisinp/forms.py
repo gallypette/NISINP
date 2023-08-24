@@ -5,6 +5,9 @@ from django.utils.translation import gettext as _
 from operator import is_not
 from functools import partial
 from datetime import datetime
+from django_countries.fields import CountryField
+from django_countries.widgets import CountrySelectWidget
+from django_countries import countries
 
 from django.forms.widgets import ChoiceWidget
 
@@ -14,10 +17,23 @@ class ServicesListCheckboxSelectMultiple(ChoiceWidget):
     input_type = 'checkbox'
     template_name = 'django/forms/widgets/service_checkbox_select.html'
     option_template_name = 'django/forms/widgets/service_checkbox_option.html'
+    add_id_index = False
+    checked_attribute = {"selected": True}
+    option_inherits_attrs = False
 
     def __init__(self, *args, **kwargs):
         super(ServicesListCheckboxSelectMultiple, self).__init__(*args, **kwargs)
 
+class DropdownCheckboxSelectMultiple(ChoiceWidget):
+    allow_multiple_selected = True
+    input_type = 'select'
+    template_name = 'django/forms/widgets/dropdown_checkbox_select.html'
+    option_template_name = 'django/forms/widgets/dropdown_checkbox_option.html'
+    allow_multiple_selected = True
+
+
+    def __init__(self, *args, **kwargs):
+        super(DropdownCheckboxSelectMultiple, self).__init__(*args, **kwargs)
 
 # Class for Multichoice and single choice
 # TO DO : improve layout
@@ -152,7 +168,7 @@ class QuestionForm(forms.Form):
             if incident is not None:
                 answer = Answer.objects.values_list(
                         'answer', flat = True).filter(question=question, incident = incident)
-                if  answer[0] != '':
+                if  len(answer) > 0 :
                     initial_data = list(filter(partial(is_not, ''),
                         answer
                         )
@@ -164,6 +180,13 @@ class QuestionForm(forms.Form):
                 ),
                 label = question.label
             )
+        elif question.question_type == 'CL':
+            self.fields[str(question.id)] = forms.MultipleChoiceField(
+                choices = countries,
+                widget=DropdownCheckboxSelectMultiple(),
+                label = "country list"
+            )
+            #self.fields[str(question.id)].widget = CountrySelectWidget(choices = countries)
 
     def __init__(self, *args, **kwargs):
         questions = Question.objects.all().order_by('position')
