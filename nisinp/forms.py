@@ -188,7 +188,9 @@ class QuestionForm(forms.Form):
             categories = QuestionCategory.objects.all().order_by(
             'position').filter(question__is_preliminary = is_preliminary).distinct()
             category = categories[position]
-            questions = Question.objects.all().filter(category=category, is_preliminary= is_preliminary)
+            questions = Question.objects.all().filter(
+                    category=category, is_preliminary= is_preliminary
+                ).order_by('position')
             for question in questions:
                 self.create_question(question, incident)
    
