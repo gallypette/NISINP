@@ -193,17 +193,6 @@ class QuestionForm(forms.Form):
                 ).order_by('position')
             for question in questions:
                 self.create_question(question, incident)
-   
-    #get the strange raw data to put in the hidden field
-    # def clean(self):
-    #     answers = []
-    #     for additional_answer in self.additional_answers:
-    #         answers.append([additional_answer,self.data.get(additional_answer+'_input')])
-    #     cleaned_data = super().clean()
-    #     for index, value in answers:
-    #         cleaned_data[index] = value
-        
-            
 
 # the first question for preliminary notification
 class ContactForm(forms.Form):   
