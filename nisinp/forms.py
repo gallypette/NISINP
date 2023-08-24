@@ -136,11 +136,12 @@ class QuestionForm(forms.Form):
             if question.question_type == 'MT' or question.question_type == 'ST':
                 answer = Answer.objects.values_list(
                         'answer', flat = True).filter(question=question, incident = incident)
-                if  answer[0] != '':
-                    initial_answer = list(filter(partial(is_not, ''),
-                        answer
-                        )
-                    )[0]
+                if  len(answer) > 0 :
+                    if  answer[0] != '':
+                        initial_answer = list(filter(partial(is_not, ''),
+                            answer
+                            )
+                        )[0]
                 self.fields[str(question.id)+'_answer'] = forms.CharField(
                     required = False,
                     widget=forms.TextInput(
@@ -169,10 +170,11 @@ class QuestionForm(forms.Form):
                 answer = Answer.objects.values_list(
                         'answer', flat = True).filter(question=question, incident = incident)
                 if  len(answer) > 0 :
-                    initial_data = list(filter(partial(is_not, ''),
-                        answer
-                        )
-                    )[0]
+                    if answer[0] != '':
+                        initial_data = list(filter(partial(is_not, ''),
+                            answer
+                            )
+                        )[0]
             self.fields[str(question.id)] = forms.CharField(
                 required= question.is_mandatory,
                 widget=forms.TextInput(
