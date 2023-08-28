@@ -71,6 +71,11 @@ class ServicesResource(resources.ModelResource):
         attribute="name",
     )
 
+    accronym = fields.Field(
+        column_name="accronym",
+        attribute="accronym",
+    )
+
     sector = fields.Field(
         column_name="sector",
         attribute="sector",
