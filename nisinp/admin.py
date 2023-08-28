@@ -53,7 +53,7 @@ class TranslatedNameM2MWidget(widgets.ManyToManyWidget):
             for lang_code in languages:
                 try:
                     instance = self.model._parler_meta.root_model.objects.get(
-                        **{self.field: value.strip()},
+                        **{self.field: name.strip()},
                         language_code=lang_code,
                     )
                     instances.append(instance.master_id)
