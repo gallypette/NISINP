@@ -90,7 +90,6 @@ INSTALLED_APPS = [
     "formtools",
     "django.forms",
     "django_countries",
-    "jquery"
 ]
 
 context_processors = [
