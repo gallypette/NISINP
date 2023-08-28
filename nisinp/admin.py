@@ -1,21 +1,27 @@
-from typing import Any, Optional
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Permission
-from django.db.models.fields.related import ForeignKey, ManyToManyField
-from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
-from django.http.request import HttpRequest
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
-from django_otp.decorators import otp_required
 from django.contrib.auth.decorators import login_required
-from import_export import fields, resources
+from import_export import fields, resources, widgets
 from import_export.admin import ImportExportModelAdmin
-from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
+from import_export.widgets import ManyToManyWidget
 from parler.admin import TranslatableAdmin
+from parler.models import TranslationDoesNotExist
 
-from nisinp.models import Company, Sector, Services, User, Question, QuestionCategory, PredifinedAnswer, RegulationType, Impact
-from nisinp.settings import SITE_NAME
+from nisinp.models import (
+    Company,
+    Sector,
+    Services,
+    User,
+    Question,
+    QuestionCategory,
+    PredifinedAnswer,
+    RegulationType,
+    Impact,
+)
+from .settings import SITE_NAME, LANGUAGES
 
 
 # Customize the admin site
@@ -24,12 +30,58 @@ class CustomAdminSite(admin.AdminSite):
     site_title = SITE_NAME
 
     def admin_view(self, view, cacheable=False):
-        #decorated_view = otp_required(view)
+        # decorated_view = otp_required(view)
         decorated_view = login_required(view)
         return super().admin_view(decorated_view, cacheable)
 
 
 admin_site = CustomAdminSite()
+
+
+# Custom widget to handle translated M2M relationships
+class TranslatedNameM2MWidget(widgets.ManyToManyWidget):
+    def clean(self, value, row=None, *args, **kwargs):
+        if not value:
+            return self.model.objects.none()
+
+        names = value.split(self.separator)
+        languages = [lang[0] for lang in LANGUAGES]
+
+        instances = []
+        for name in names:
+            for lang_code in languages:
+                try:
+                    instance = self.model._parler_meta.root_model.objects.get(
+                        name=name.strip(),
+                        language_code=lang_code,
+                    )
+                    instances.append(instance.master_id)
+                    break
+                except (self.model.DoesNotExist, TranslationDoesNotExist):
+                    pass
+
+        return instances
+
+
+# Custom widget to handle translated ForeignKey relationships
+class TranslatedNameWidget(widgets.ForeignKeyWidget):
+    def clean(self, value, row=None, *args, **kwargs):
+        if not value:
+            return self.model.objects.none()
+
+        languages = [lang[0] for lang in LANGUAGES]
+
+        for lang_code in languages:
+            try:
+                instance = self.model._parler_meta.root_model.objects.get(
+                    name=value.strip(),
+                    language_code=lang_code,
+                )
+                return instance.master
+            except (self.model.DoesNotExist, TranslationDoesNotExist):
+                pass
+
+        return
 
 
 class SectorResource(resources.ModelResource):
@@ -46,7 +98,7 @@ class SectorResource(resources.ModelResource):
     parent = fields.Field(
         column_name="parent",
         attribute="parent",
-        widget=ForeignKeyWidget(Sector, field="name"),
+        widget=TranslatedNameWidget(Sector, field="name"),
     )
 
     class Meta:
@@ -79,11 +131,11 @@ class ServicesResource(resources.ModelResource):
     sector = fields.Field(
         column_name="sector",
         attribute="sector",
-        widget=ForeignKeyWidget(Sector, field="name"),
+        widget=TranslatedNameWidget(Sector, field="name"),
     )
 
     class Meta:
-        model = Sector
+        model = Services
 
 
 @admin.register(Services, site=admin_site)
@@ -106,7 +158,7 @@ class CompanyResource(resources.ModelResource):
     sectors = fields.Field(
         column_name="sectors",
         attribute="sectors",
-        widget=ManyToManyWidget(Sector, field="name", separator=","),
+        widget=TranslatedNameM2MWidget(Sector, field="name", separator=","),
     )
 
     class Meta:
@@ -199,7 +251,7 @@ class UserResource(resources.ModelResource):
     sectors = fields.Field(
         column_name="sectors",
         attribute="sectors",
-        widget=ManyToManyWidget(Sector, field="name", separator=","),
+        widget=TranslatedNameM2MWidget(Sector, field="name", separator=","),
     )
 
     class Meta:
@@ -213,6 +265,7 @@ class UserResource(resources.ModelResource):
             "companies",
             "sectors",
         ]
+
 
 # reset the 2FA we delete the TOTP devices
 @admin.action(description=_("Reset 2FA"))
@@ -362,6 +415,7 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                     user.is_staff = is_company_admin
                     user.save()
 
+
 class FunctionalityResource(resources.ModelResource):
     id = fields.Field(
         column_name="id",
@@ -372,6 +426,7 @@ class FunctionalityResource(resources.ModelResource):
         column_name="name",
         attribute="name",
     )
+
 
 class PredifinedAnswerResource(resources.ModelResource):
     id = fields.Field(
@@ -390,11 +445,13 @@ class PredifinedAnswerResource(resources.ModelResource):
     class Meta:
         model = PredifinedAnswer
 
+
 @admin.register(PredifinedAnswer, site=admin_site)
 class PredifinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["predifined_answer", "allowed_additional_answer"]
     search_fields = ["allowed_additional_answer, predifined_answer"]
     resource_class = PredifinedAnswerResource
+
 
 class QuestionCategoryResource(resources.ModelResource):
     id = fields.Field(
@@ -405,15 +462,21 @@ class QuestionCategoryResource(resources.ModelResource):
         column_name="label",
         attribute="label",
     )
+    position = fields.Field(
+        column_name="position",
+        attribute="position",
+    )
 
     class Meta:
         model = QuestionCategory
+
 
 @admin.register(QuestionCategory, site=admin_site)
 class QuestionCategoryAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["label", "position"]
     search_fields = ["label"]
     resource_class = QuestionCategoryResource
+
 
 class QuestionResource(resources.ModelResource):
     id = fields.Field(
@@ -425,31 +488,55 @@ class QuestionResource(resources.ModelResource):
         column_name="label",
         attribute="label",
     )
+
+    tooltip = fields.Field(
+        column_name="tooltip",
+        attribute="tooltip",
+    )
+
+    question_type = fields.Field(
+        column_name="question_type",
+        attribute="question_type",
+    )
+
+    is_mandatory = fields.Field(
+        column_name="is_mandatory",
+        attribute="is_mandatory",
+    )
+
+    is_preliminary = fields.Field(
+        column_name="is_preliminary",
+        attribute="is_preliminary",
+    )
+
     predifined_answers = fields.Field(
         column_name="predifined_answers",
         attribute="predifined_answers",
-        widget=ManyToManyWidget(PredifinedAnswer, field="predifined_answer", separator=","),
+        widget=TranslatedNameM2MWidget(
+            PredifinedAnswer, field="predifined_answer", separator=","
+        ),
+    )
+
+    position = fields.Field(
+        column_name="position",
+        attribute="position",
     )
     category = fields.Field(
         column_name="category",
         attribute="category",
-        widget=ManyToManyWidget(QuestionCategory, field="label", separator=","),
+        widget=TranslatedNameWidget(QuestionCategory, field="label"),
     )
 
     class Meta:
         model = Question
-        fields = "__all__"
 
 
 @admin.register(Question, site=admin_site)
 class QuestionAdmin(ImportExportModelAdmin, TranslatableAdmin):
-    list_display = [
-        "label",
-        "category", 
-        "get_predifined_answers"
-    ]
+    list_display = ["label", "category", "get_predifined_answers"]
     search_fields = ["label"]
     resource_class = QuestionResource
+
 
 class RegulationTypeResource(resources.ModelResource):
     label = fields.Field(
@@ -460,11 +547,13 @@ class RegulationTypeResource(resources.ModelResource):
     class Meta:
         model = RegulationType
 
+
 @admin.register(RegulationType, site=admin_site)
 class RegulationTypeAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["label"]
     search_fields = ["label"]
     resource_class = RegulationTypeResource
+
 
 class ImpactResource(resources.ModelResource):
     label = fields.Field(
@@ -474,6 +563,7 @@ class ImpactResource(resources.ModelResource):
 
     class Meta:
         model = Impact
+
 
 @admin.register(Impact, site=admin_site)
 class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
