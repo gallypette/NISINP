@@ -541,6 +541,20 @@ django = ">=3.2"
 qrcode = ["qrcode"]
 
 [[package]]
+name = "django-parler"
+version = "2.3"
+description = "Simple Django model translations without nasty hacks, featuring nice admin integration."
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-parler-2.3.tar.gz", hash = "sha256:2c8f5012ceb5e49af93b16ea3fe4d0c83d70b91b2d0f470c05d7d742b6f3083d"},
+    {file = "django_parler-2.3-py3-none-any.whl", hash = "sha256:8f6c8061e4b5690f1ee2d8e5760940ef06bf78a5bfa033d11178377559c749cf"},
+]
+
+[package.dependencies]
+Django = ">=2.2"
+
+[[package]]
 name = "django-phonenumber-field"
 version = "6.4.0"
 description = "An international phone number field for django models."
@@ -1849,4 +1863,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "fc9c8063dd58c536ed4fa0c087d08ea326d1bf1182fa93a018f331e2e648b715"
+content-hash = "8f2199bf983203efa3a6d22904612b5ec79ba0ee1dab91f05fb674b930cb2994"
