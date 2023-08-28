@@ -8,6 +8,7 @@ from .globals import (
     QUESTION_TYPES,
 )
 
+from .helpers import generate_token
 from .managers import CustomUserManager
 
 from datetime import date
@@ -110,6 +111,7 @@ class User(AbstractUser):
             "unique": _("A user is already registered with this email address"),
         },
     )
+    proxy_token = models.CharField(max_length=255, default=generate_token, unique=True)
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"

@@ -304,6 +304,7 @@ class UserAdmin(ImportExportModelAdmin, admin.ModelAdmin):
                 "fields": [
                     ("first_name", "last_name"),
                     ("email", "phone_number"),
+                    ("proxy_token"),
                 ],
             },
         ),

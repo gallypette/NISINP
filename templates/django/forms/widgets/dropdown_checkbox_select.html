@@ -1,25 +1,13 @@
-
-{% load static %}
-{% block bootstrap5_extra_head %}
-
-{% endblock %}
-
-<!-- 
-<script src='{% static "npm_components/jquery/dist/jquery.min.js" %}'></script>
-<link rel="stylesheet" href="{% static 'npm_components/bootstrap/dist/css/bootstrap.min.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'npm_components/bootstrap-select/dist/css/bootstrap-select.css' %}" />
-<script src='{% static "npm_components/bootstrap-select/dist/js/bootstrap-select.min.js" %}'></script>
-<script src='{% static "npm_components/bootstrap/dist/js/bootstrap.min.js" %}'></script> -->
+<script src=  "/static/npm_components/jquery/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="/static/npm_components/bootstrap/dist/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="/static/npm_components/bootstrap-select/dist/css/bootstrap-select.css" />
+<script src="/static/npm_components/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
 
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.8.1/css/bootstrap-select.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.8.1/js/bootstrap-select.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
-<select class="selectpicker" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %} multiple>{% for group_name, group_choices, group_index in widget.optgroups %}{% if group_name %}
+<select id="lang"  class="selectpicker" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %} multiple>{% for group_name, group_choices, group_index in widget.optgroups %}{% if group_name %}
     <optgroup label="{{ group_name }}">{% endif %}{% for option in group_choices %}
     {% include option.template_name with widget=option %}{% endfor %}{% if group_name %}
     </optgroup>{% endif %}{% endfor %}
-  </select>
+</select>
+
