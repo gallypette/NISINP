@@ -332,7 +332,7 @@ def construct_services_array(root_categories):
     for sector, list_of_options in categs.items():
         name = sector.name
         while sector.parent is not None:
-            name = sector.parent.name+' - '+name
+            name = _(sector.parent.name)+' - '+_(name)
             sector = sector.parent
         # [optgroup, [options]]
         final_categs.append([name, list_of_options])
