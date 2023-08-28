@@ -20,6 +20,7 @@ from nisinp.models import (
     PredifinedAnswer,
     RegulationType,
     Impact,
+    Incident,
 )
 from .settings import SITE_NAME, LANGUAGES
 
@@ -52,7 +53,7 @@ class TranslatedNameM2MWidget(widgets.ManyToManyWidget):
             for lang_code in languages:
                 try:
                     instance = self.model._parler_meta.root_model.objects.get(
-                        **{self.field: value.strip()},
+                        **{self.field: name.strip()},
                         language_code=lang_code,
                     )
                     instances.append(instance.master_id)
@@ -571,3 +572,19 @@ class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["label"]
     search_fields = ["label"]
     resource_class = ImpactResource
+
+class IncidentResource(resources.ModelResource):
+    id = fields.Field(
+        column_name="id",
+        attribute="id",
+    )
+
+
+    class Meta:
+        model = Incident
+
+
+@admin.register(Incident, site=admin_site)
+class PredifinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
+
+    resource_class = IncidentResource
