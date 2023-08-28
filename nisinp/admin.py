@@ -20,6 +20,7 @@ from nisinp.models import (
     PredifinedAnswer,
     RegulationType,
     Impact,
+    Incident,
 )
 from .settings import SITE_NAME, LANGUAGES
 
@@ -570,3 +571,19 @@ class ImpactAdmin(ImportExportModelAdmin, TranslatableAdmin):
     list_display = ["label"]
     search_fields = ["label"]
     resource_class = ImpactResource
+
+class IncidentResource(resources.ModelResource):
+    id = fields.Field(
+        column_name="id",
+        attribute="id",
+    )
+
+
+    class Meta:
+        model = Incident
+
+
+@admin.register(Incident, site=admin_site)
+class PredifinedAnswerAdmin(ImportExportModelAdmin, TranslatableAdmin):
+
+    resource_class = IncidentResource
