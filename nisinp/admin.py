@@ -52,7 +52,7 @@ class TranslatedNameM2MWidget(widgets.ManyToManyWidget):
             for lang_code in languages:
                 try:
                     instance = self.model._parler_meta.root_model.objects.get(
-                        name=name.strip(),
+                        **{self.field: value.strip()},
                         language_code=lang_code,
                     )
                     instances.append(instance.master_id)
@@ -74,7 +74,7 @@ class TranslatedNameWidget(widgets.ForeignKeyWidget):
         for lang_code in languages:
             try:
                 instance = self.model._parler_meta.root_model.objects.get(
-                    name=value.strip(),
+                    **{self.field: value.strip()},
                     language_code=lang_code,
                 )
                 return instance.master
@@ -158,7 +158,7 @@ class CompanyResource(resources.ModelResource):
     sectors = fields.Field(
         column_name="sectors",
         attribute="sectors",
-        widget=TranslatedNameM2MWidget(Sector, field="name", separator=","),
+        widget=TranslatedNameM2MWidget(Sector, field="name", separator="\n"),
     )
 
     class Meta:
@@ -251,7 +251,7 @@ class UserResource(resources.ModelResource):
     sectors = fields.Field(
         column_name="sectors",
         attribute="sectors",
-        widget=TranslatedNameM2MWidget(Sector, field="name", separator=","),
+        widget=TranslatedNameM2MWidget(Sector, field="name", separator="\n"),
     )
 
     class Meta:
@@ -513,7 +513,7 @@ class QuestionResource(resources.ModelResource):
         column_name="predifined_answers",
         attribute="predifined_answers",
         widget=TranslatedNameM2MWidget(
-            PredifinedAnswer, field="predifined_answer", separator=","
+            PredifinedAnswer, field="predifined_answer", separator="\n"
         ),
     )
 
