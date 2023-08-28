@@ -83,7 +83,7 @@ class ServicesResource(resources.ModelResource):
     )
 
     class Meta:
-        model = Sector
+        model = Services
 
 
 @admin.register(Services, site=admin_site)
@@ -405,6 +405,10 @@ class QuestionCategoryResource(resources.ModelResource):
         column_name="label",
         attribute="label",
     )
+    position = fields.Field(
+        column_name="position",
+        attribute="position",
+    )
 
     class Meta:
         model = QuestionCategory
@@ -438,7 +442,6 @@ class QuestionResource(resources.ModelResource):
 
     class Meta:
         model = Question
-        fields = "__all__"
 
 
 @admin.register(Question, site=admin_site)

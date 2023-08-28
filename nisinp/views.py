@@ -5,7 +5,7 @@ from django.shortcuts import redirect, render
 from django_otp.decorators import otp_required
 
 from .forms import  ContactForm, QuestionForm, get_number_of_question, ImpactForFinalNotificationForm
-from .models import Incident, Answer, Question, PredifinedAnswer
+from .models import Incident, Answer, Question, PredifinedAnswer, Services
 
 from datetime import date
 
@@ -119,16 +119,41 @@ class FormWizardView(SessionWizardView):
             complaint_reference = data[0]['complaint_reference'],
             contact_user = user,
             company = company,
+            company_name = company.name if company is not None else data[0]['company_name']
         )
         for regulation in data[1]['regulation']:
             incident.regulations.add(regulation)
+        
+        # incident reference
+        company_for_ref = ''
+        sector_for_ref = ''
+        subsector_for_ref = ''
+        number_of_incident = '0001'
+        if company is None:
+            company_for_ref = data[0]['company_name'][:4]
+
         for service in data[1]['affected_services']:
             try:
                 service = int(service)
                 incident.affected_services.add(service)
+                if subsector_for_ref is '':
+                    service_entity = Services.objects.get(id=service)
+                    sector = service_entity.sector
+                    subsector_for_ref = sector.accronym
+                    if sector.parent is not None:
+                        sector_for_ref = sector.parent.accronym
             except:
                 pass
         
+        incident.ïncident_id = (
+            company_for_ref +'_'+
+            sector_for_ref +'_'+
+            subsector_for_ref +'_'+
+            number_of_incident +'_'+
+            str(date.today().year)
+        )
+        incident.save()
+
         #save questions
         saveAnswers(2, data, incident)
 
