@@ -139,9 +139,9 @@ class FormWizardView(SessionWizardView):
                 if subsector_for_ref is '':
                     service_entity = Services.objects.get(id=service)
                     sector = service_entity.sector
-                    subsector_for_ref = sector.accronym
+                    subsector_for_ref = sector.accronym[:3]
                     if sector.parent is not None:
-                        sector_for_ref = sector.parent.accronym
+                        sector_for_ref = sector.parent.accronym[:3]
             except:
                 pass
         
